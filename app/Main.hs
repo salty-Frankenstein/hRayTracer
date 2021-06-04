@@ -1,12 +1,15 @@
 module Main where
 
+import Camera
 import Control.Monad.Writer
-import Numeric.LinearAlgebra
-import qualified Ray as R
-import qualified Vec3 as V3
+import Data.IORef
 import qualified Hitable as HB
 import HitableList
+import Numeric.LinearAlgebra
+import qualified Ray as R
 import Sphere
+import System.Random
+import qualified Vec3 as V3
 
 color :: R.Ray -> HitableList -> V3.Vec3
 color r world
@@ -17,29 +20,37 @@ color r world
     unitDir = normalize (R.direction r)
     t2 = 0.5 * (V3.y unitDir + 1)
 
-writePic :: Writer String ()
+randomStream :: IO [R]
+randomStream = randomRs (0, 1) <$> newStdGen
+
+writePic :: WriterT String IO ()
 writePic = do
   let nx = 200
       ny = 100
+      ns = 100
   tell $ "P3\n" ++ show nx ++ " " ++ show ny ++ "\n255\n"
-  let lowerLeftCorner = - V3.vec3 2.0 1.0 1.0
-      horizontal = V3.vec3 4 0 0
-      vertical = V3.vec3 0 2 0
-      origin = V3.vec3 0 0 0
-      s1 = Sphere (V3.vec3 0 0 (-1)) 0.5
+  let s1 = Sphere (V3.vec3 0 0 (-1)) 0.5
       s2 = Sphere (V3.vec3 0 (-100.5) (-1)) 100
       world = HitableList $ map HB.Hitable [s1, s2]
+
+  colRef <- liftIO $ newIORef (V3.vec3 0 0 0)
   forM_ [ny -1, ny -2 .. 0] $ \j -> do
     forM_ [0 .. nx -1] $ \i -> do
-      let u = fromIntegral i / fromIntegral nx
-          v = fromIntegral j / fromIntegral ny
-          r = R.Ray origin (lowerLeftCorner + V3.v u * horizontal + V3.v v * vertical)
-          p = R.pointAtParameter r 2
-          col = color r world
-          ir = truncate (255.99 * V3.x col)
+      liftIO $ writeIORef colRef (V3.vec3 0 0 0)
+      r <- liftIO $ liftM2 zip randomStream randomStream
+      forM_ (take ns r) $ \(di, dj) -> do
+        let u = (fromIntegral i + di) / fromIntegral nx
+            v = (fromIntegral j + dj) / fromIntegral ny
+            r = getRay camera0 u v
+        liftIO $ modifyIORef colRef (+ color r world)
+        
+      col <- liftIO $ (/ fromIntegral ns) <$> readIORef colRef
+      let ir = truncate (255.99 * V3.x col)
           ig = truncate (255.99 * V3.y col)
           ib = truncate (255.99 * V3.z col)
       tell $ show ir ++ " " ++ show ig ++ " " ++ show ib ++ "\n"
 
 main :: IO ()
-main = writeFile "out.ppm" (execWriter writePic)
+main =
+  execWriterT writePic
+    >>= writeFile "out.ppm"

@@ -1,15 +1,19 @@
-module Vec3(
-  Vec3,
-  vec3,
-  vector,
-  x,y,z,v
-) where
+module Vec3
+  ( Vec3,
+    vec3,
+    vector,
+    x,
+    y,
+    z,
+    v,
+  )
+where
 
 import Numeric.LinearAlgebra
 
 type Vec3 = Vector R
 
-x, y, z :: Vec3 -> R 
+x, y, z :: Vec3 -> R
 x v = v ! 0
 y v = v ! 1
 z v = v ! 2

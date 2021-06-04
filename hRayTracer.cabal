@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c47f736b1d2d56811deafd79bb0ee2aa38ed48b0dc752a373dfbfa384bbbe500
+-- hash: 6603be6341d68b0edbebcbffbe8965bbb52a4cbaeb0fe58a63bcfe7927ea6a30
 
 name:           hRayTracer
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Camera
       Hitable
       HitableList
       Ray
@@ -40,6 +41,7 @@ library
       base >=4.7 && <5
     , hmatrix
     , mtl
+    , random
   default-language: Haskell2010
 
 executable hRayTracer-exe
@@ -54,6 +56,7 @@ executable hRayTracer-exe
     , hRayTracer
     , hmatrix
     , mtl
+    , random
   default-language: Haskell2010
 
 test-suite hRayTracer-test
@@ -69,4 +72,5 @@ test-suite hRayTracer-test
     , hRayTracer
     , hmatrix
     , mtl
+    , random
   default-language: Haskell2010
