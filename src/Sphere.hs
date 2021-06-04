@@ -7,10 +7,11 @@ import Control.Monad.State
 import qualified Ray as R
 import qualified Vec3 as V3
 
-data Sphere = Sphere {center :: V3.Vec3, radius :: R}
+sphere :: V3.Vec3 -> R -> HB.Hitable
+sphere c r = HB.Hitable $ hitSphere (Sphere c r)
 
-instance HB.Hitable_ Sphere where
-  hit (Sphere cen rad) r tMin tMax = do
+hitSphere :: Sphere -> R.Ray -> R -> R -> State HB.HitRec Bool
+hitSphere (Sphere cen rad) r tMin tMax = do
     let oc = R.origin r - cen
         a = R.direction r `dot` R.direction r
         b = oc `dot` R.direction r
@@ -37,4 +38,4 @@ instance HB.Hitable_ Sphere where
 
       }) else return False
 
-
+data Sphere = Sphere {center :: V3.Vec3, radius :: R}
