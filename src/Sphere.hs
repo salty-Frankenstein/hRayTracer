@@ -1,17 +1,17 @@
 {-# LANGUAGE MultiWayIf #-}
 module Sphere where
 
+import Control.Monad.State
 import qualified Hitable as HB
 import Numeric.LinearAlgebra
-import Control.Monad.State
 import qualified Ray as R
 import qualified Vec3 as V3
 
-sphere :: V3.Vec3 -> R -> HB.Hitable
-sphere c r = HB.Hitable $ hitSphere (Sphere c r)
+sphere :: V3.Vec3 -> R -> HB.Material -> HB.Hitable
+sphere c r m = HB.Hitable $ hitSphere (Sphere c r m)
 
 hitSphere :: Sphere -> R.Ray -> R -> R -> State HB.HitRec Bool
-hitSphere (Sphere cen rad) r tMin tMax = do
+hitSphere (Sphere cen rad mat) r tMin tMax = do
     let oc = R.origin r - cen
         a = R.direction r `dot` R.direction r
         b = oc `dot` R.direction r
@@ -25,17 +25,21 @@ hitSphere (Sphere cen rad) r tMin tMax = do
               let rect = temp
                   recp = R.pointAtParameter r rect
                   recnormal = (recp - cen) / V3.v rad
-              put $ HB.HitRec rect recp recnormal 
+              put $ HB.HitRec rect recp recnormal mat
               return True ;
           | temp2  < tMax && temp2 > tMin ->
             do
               let rect = temp2
                   recp = R.pointAtParameter r rect
                   recnormal = (recp - cen) / V3.v rad
-              put $ HB.HitRec rect recp recnormal 
+              put $ HB.HitRec rect recp recnormal mat
               return True ;
           | otherwise -> return False 
 
       }) else return False
 
-data Sphere = Sphere {center :: V3.Vec3, radius :: R}
+data Sphere = Sphere
+  { center :: V3.Vec3,
+    radius :: R,
+    material :: HB.Material
+  }

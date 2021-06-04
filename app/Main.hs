@@ -1,50 +1,50 @@
 module Main where
 
 import Camera
+import Control.Concurrent
 import Control.Monad.Writer
 import Data.IORef
 import qualified Data.Vector.Unboxed as U
 import qualified Hitable as HB
 import HitableList
+import Material
 import Numeric.LinearAlgebra
 import Random
 import qualified Ray as R
 import Sphere
 import System.IO
 import qualified Vec3 as V3
-import Control.Concurrent
 
 rMax = 200
 nx = 200
 ny = 100
 ns = 100
-s1 = sphere (V3.vec3 0 0 (-1)) 0.5
-s2 = sphere (V3.vec3 0 (-100.5) (-1)) 100
-world = hitableList [s1, s2]
+world =
+  hitableList
+    [ sphere (V3.vec3 0 0 (-1)) 0.5 (lambertian (V3.vec3 0.8 0.3 0.3)),
+      sphere (V3.vec3 0 (-100.5) (-1)) 100 (lambertian (V3.vec3 0.8 0.8 0)),
+      sphere (V3.vec3 1 0 (-1)) 0.5 (metal (V3.vec3 0.8 0.6 0.2)),
+      sphere (V3.vec3 (-1) 0 (-1)) 0.5 (metal (V3.vec3 0.8 0.8 0.8))
+    ]
 
-color :: R.Ray -> IORef (U.Vector (R, R, R)) -> IORef Int -> HB.Hitable -> IO V3.Vec3
-color r ruRef idxRef world
+color :: R.Ray -> IORef (U.Vector (R, R, R)) -> IORef Int -> HB.Hitable -> Int -> IO V3.Vec3
+color r ruRef idxRef world depth
   | res = do
-    ruv <- readIORef ruRef
-    idx <- readIORef idxRef
-    case ruv U.!? idx of
-      Just ru -> do
-        let target = p + normal + V3.tupleToV ru
-        modifyIORef idxRef (+ 1)
-        (V3.v 0.5 *) <$> color (R.Ray p (target - p)) ruRef idxRef world
-      Nothing -> do
-        writeIORef idxRef 0
-        color r ruRef idxRef world
+      if depth < 50 then do
+        scattered <- newIORef r -- TODO
+        attenuation <- newIORef (V3.v 0)
+        sres <- HB.runMaterial material r hrec attenuation scattered ruRef idxRef
+        if sres then do
+          a <- readIORef attenuation
+          s <- readIORef scattered
+          (a *) <$> color s ruRef idxRef world (depth+1)
+        else return $ V3.vec3 0 0 0
+      else return $ V3.vec3 0 0 0
   | otherwise = return $ V3.v (1 - t2) * V3.vec3 1 1 1 + V3.v t2 * V3.vec3 0.5 0.7 1.0
   where
-    (res, HB.HitRec t p normal) = HB.runHit world r 0.001 1000000
+    (res, hrec@(HB.HitRec t p normal material)) = HB.runHit world r 0.001 1000000
     unitDir = normalize (R.direction r)
     t2 = 0.5 * (V3.y unitDir + 1)
-
--- color r [] world = do
---   print "here\n"
---   ru <- randomInUnitSphere ns
---   color r ru world
 
 colorAt i j ruRef idxRef = do
   colRef <- newIORef (V3.vec3 0 0 0)
@@ -57,7 +57,7 @@ colorAt i j ruRef idxRef = do
         let u = (fromIntegral i + di) / fromIntegral nx
             v = (fromIntegral j + dj) / fromIntegral ny
             r = getRay camera0 u v
-        c <- color r ruRef idxRef world
+        c <- color r ruRef idxRef world 0
         modifyIORef colRef (+ c)
 
 main :: IO ()

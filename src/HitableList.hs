@@ -1,10 +1,9 @@
 module HitableList where
 
+import Control.Monad.State
 import qualified Hitable as HB
 import Numeric.LinearAlgebra
 import qualified Ray as R
-import Control.Monad.State
-
 
 hitableList :: [HB.Hitable] -> HB.Hitable
 hitableList l = HB.Hitable (hitList l)
@@ -15,7 +14,7 @@ hitList (x:xs) r tMin tMax = do
   res <- HB.runHitable x r tMin tMax
   if res 
     then do
-      (HB.HitRec t p normal) <- get 
+      (HB.HitRec t _ _ _) <- get 
       hitList xs r tMin t
       return True
     else do

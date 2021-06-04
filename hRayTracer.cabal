@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4cf34ede5d7aa1595d33647f593e4eb413176617073a564dd565686d3d11871a
+-- hash: 970da00b25bde215292a6679f21633a0742da5a6d0236221cfd9fa5c966aa22d
 
 name:           hRayTracer
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Camera
       Hitable
       HitableList
+      Material
       Random
       Ray
       Sphere
