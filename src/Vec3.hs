@@ -2,7 +2,6 @@ module Vec3(
   Vec3,
   vec3,
   vector,
-  R,
   x,y,z,v
 ) where
 

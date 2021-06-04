@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 84cfdff85b20721365b009afd4734f43605a5956fe70b8163446350354c45c37
+-- hash: c47f736b1d2d56811deafd79bb0ee2aa38ed48b0dc752a373dfbfa384bbbe500
 
 name:           hRayTracer
 version:        0.1.0.0
@@ -27,8 +27,10 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Hitable
+      HitableList
       Ray
+      Sphere
       Vec3
   other-modules:
       Paths_hRayTracer

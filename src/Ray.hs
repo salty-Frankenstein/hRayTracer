@@ -1,5 +1,6 @@
 module Ray where
 
+import Numeric.LinearAlgebra
 import Vec3
 data Ray = Ray {a :: Vec3, b :: Vec3}
 origin = a
