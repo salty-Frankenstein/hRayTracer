@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6603be6341d68b0edbebcbffbe8965bbb52a4cbaeb0fe58a63bcfe7927ea6a30
+-- hash: 4cf34ede5d7aa1595d33647f593e4eb413176617073a564dd565686d3d11871a
 
 name:           hRayTracer
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Camera
       Hitable
       HitableList
+      Random
       Ray
       Sphere
       Vec3
@@ -39,9 +40,12 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , deepseq
     , hmatrix
     , mtl
+    , mwc-random
     , random
+    , vector
   default-language: Haskell2010
 
 executable hRayTracer-exe
@@ -50,13 +54,16 @@ executable hRayTracer-exe
       Paths_hRayTracer
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       base >=4.7 && <5
+    , deepseq
     , hRayTracer
     , hmatrix
     , mtl
+    , mwc-random
     , random
+    , vector
   default-language: Haskell2010
 
 test-suite hRayTracer-test
@@ -69,8 +76,11 @@ test-suite hRayTracer-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , deepseq
     , hRayTracer
     , hmatrix
     , mtl
+    , mwc-random
     , random
+    , vector
   default-language: Haskell2010

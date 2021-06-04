@@ -1,2 +1,7 @@
+import Random
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do--putStrLn "Test suite not yet implemented"
+  r <- randFast 10
+  
+  print r
