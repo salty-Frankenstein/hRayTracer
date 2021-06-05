@@ -13,8 +13,8 @@ sphere c r m = HB.Hitable $ hitSphere (Sphere c r m)
 hitSphere :: Sphere -> R.Ray -> R -> R -> State HB.HitRec Bool
 hitSphere (Sphere cen rad mat) r tMin tMax = do
     let oc = R.origin r - cen
-        a = R.direction r `dot` R.direction r
-        b = oc `dot` R.direction r
+        a = R.direction r <.> R.direction r
+        b = oc <.> R.direction r
         c = dot oc oc - rad * rad
         d = b * b - a * c
         temp = (-b - sqrt d) / a

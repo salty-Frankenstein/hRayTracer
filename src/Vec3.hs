@@ -6,7 +6,7 @@ module Vec3
     y,
     z,
     v,
-    sqrtLength,
+    Vec3.length,
     toTuple,
     tupleToV,
   )
@@ -27,8 +27,8 @@ vec3 x y z = vector [x, y, z]
 v :: R -> Vector R
 v x = vector [x]
 
-sqrtLength :: Vec3 -> R
-sqrtLength v = sqrt $ x v ** 2 + y v ** 2 + z v ** 2
+length :: Vec3 -> R
+length v = sqrt $ x v ** 2 + y v ** 2 + z v ** 2
 
 toTuple :: Vec3 -> (R, R, R)
 toTuple v = (x v, y v, z v)

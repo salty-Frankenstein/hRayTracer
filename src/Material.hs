@@ -8,19 +8,6 @@ import Random
 import qualified Ray as R
 import qualified Vec3 as V3
 
-getRU :: U.Unbox a => IORef (U.Vector a) -> IORef Int -> IO a
-getRU ruRef idxRef = do
-  ruv <- readIORef ruRef
-  idx <- readIORef idxRef
-  case ruv U.!? idx of
-    Just ru -> do
-      modifyIORef idxRef (+1)
-      return ru
-    Nothing -> do
-      writeIORef idxRef 0
-      putStrLn "reuse random"
-      getRU ruRef idxRef
-
 lambertian :: V3.Vec3 -> HB.Material
 lambertian albedo = HB.Material lambertian'
   where
@@ -60,7 +47,7 @@ metal albedo f = HB.Material metal'
       let reflected = reflect (normalize . R.direction $ rIn) nor
       writeIORef scattered (R.Ray p (reflected + V3.v fuzz * V3.tupleToV ru))
       writeIORef attenuation albedo
-      return $ reflected `dot` nor > 0
+      return $ reflected <.> nor > 0
 
 dielectric :: R -> HB.Material
 dielectric refIdx = HB.Material dielectric'
@@ -80,6 +67,6 @@ dielectric refIdx = HB.Material dielectric'
       return True
       where
         (outwardNormal, ni_over_nt, cosine) = 
-            if dir `dot` nor > 0 
-              then (-nor, refIdx, refIdx * dot dir nor / V3.sqrtLength dir)
-              else (nor, 1 / refIdx, - dot dir nor / V3.sqrtLength dir)
+            if dir <.> nor > 0 
+              then (-nor, refIdx, refIdx * dot dir nor / V3.length dir)
+              else (nor, 1 / refIdx, - dot dir nor / V3.length dir)

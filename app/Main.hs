@@ -15,7 +15,6 @@ import Sphere
 import System.IO
 import qualified Vec3 as V3
 
-rMax = 200000
 nx = 200
 ny = 100
 ns = 100
@@ -27,11 +26,6 @@ world =
       sphere (V3.vec3 (-1) 0 (-1)) 0.5 (dielectric 1.5),
       sphere (V3.vec3 (-1) 0 (-1)) (-0.45) (dielectric 1.5)
     ]
-cam = camera (V3.vec3 (-2) 2 1) 
-             (V3.vec3 0 0 (-1)) 
-             (V3.vec3 0 1 0) 
-             90 
-             (fromIntegral nx / fromIntegral ny)
 
 color :: R.Ray -> IORef (U.Vector R) -> IORef (U.Vector (R, R, R)) -> IORef Int -> HB.Hitable -> Int -> IO V3.Vec3
 color r rRef ruRef idxRef world depth
@@ -52,7 +46,7 @@ color r rRef ruRef idxRef world depth
     unitDir = normalize (R.direction r)
     t2 = 0.5 * (V3.y unitDir + 1)
 
-colorAt i j rRef ruRef idxRef = do
+colorAt cam i j rRef ruRef idxRef = do
   colRef <- newIORef (V3.vec3 0 0 0)
   colorAt' colRef
   readIORef colRef
@@ -62,7 +56,7 @@ colorAt i j rRef ruRef idxRef = do
       U.forM_ r $ \(di, dj) -> do
         let u = (fromIntegral i + di) / fromIntegral nx
             v = (fromIntegral j + dj) / fromIntegral ny
-            r = getRay cam u v
+        r <- getRay cam u v
         c <- color r rRef ruRef idxRef world 0
         modifyIORef colRef (+ c)
 
@@ -73,10 +67,18 @@ main = do
   ruRef <- randomInUnitSphere rMax >>= newIORef
   rRef <- randFast rMax >>= newIORef
   idxRef <- newIORef 0
+
+  let lookfrom = V3.vec3 3 3 2
+      lookat = V3.vec3 0 0 (-1)
+      distToFocus = V3.length (lookfrom - lookat)
+      aspect = fromIntegral nx / fromIntegral ny
+      aperture = 2
+  cam <- camera lookfrom lookat (V3.vec3 0 1 0) 20 aspect aperture distToFocus
+
   forM_ [ny -1, ny -2 .. 0] $ \j -> do
     print j
     forM_ [0 .. nx -1] $ \i -> do
-      col <- (/ fromIntegral ns) <$> colorAt i j rRef ruRef idxRef
+      col <- (/ fromIntegral ns) <$> colorAt cam i j rRef ruRef idxRef
       let col' = V3.vec3 (sqrt $ V3.x col) (sqrt $ V3.y col) (sqrt $ V3.z col)
       let ir = truncate (255.99 * V3.x col')
           ig = truncate (255.99 * V3.y col')
