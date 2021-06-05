@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 module Main where
 
 import Camera
@@ -15,18 +16,40 @@ import Sphere
 import System.IO
 import qualified Vec3 as V3
 
-nx = 200
-ny = 100
-ns = 100
-world =
-  hitableList
-    [ sphere (V3.vec3 0 0 (-1)) 0.5 (lambertian (V3.vec3 0.1 0.2 0.5)),
-      sphere (V3.vec3 0 (-100.5) (-1)) 100 (lambertian (V3.vec3 0.8 0.8 0)),
-      sphere (V3.vec3 1 0 (-1)) 0.5 (metal (V3.vec3 0.8 0.6 0.2) 0.3),
-      sphere (V3.vec3 (-1) 0 (-1)) 0.5 (dielectric 1.5),
-      sphere (V3.vec3 (-1) 0 (-1)) (-0.45) (dielectric 1.5)
-    ]
+nx = 100
+ny = 50
+ns = 5
 
+randomScene :: IO HB.Hitable
+randomScene = do
+  resRef <- newIORef []
+  rRef <- randFast rMax >>= newIORef
+  idxRef <- newIORef 0
+  let push x = modifyIORef resRef (x:)
+      getRand = getRU rRef idxRef
+  let n = 500
+  push $ sphere (V3.vec3 0 (-1000) 0) 1000 (lambertian (V3.vec3 0.5 0.5 0.5))
+  forM_ [-11..10] $ \a -> do
+    forM_ [-11..10] $ \b -> do
+      chooseMat <- getRand
+      x <- getRand
+      y <- getRand
+      let center = V3.vec3 (a + 0.9 * x) 0.2 (b + 0.9 * y)
+      when (V3.length (center - V3.vec3 4 0.2 0) > 0.9) $ do
+        if| chooseMat < 0.8 -> do
+            let mul = (*) <$> getRand <*> getRand
+            mat <- lambertian <$> liftM3 V3.vec3 mul mul mul
+            push $ sphere center 0.2 mat
+          | chooseMat < 0.95 -> do
+            let f = (\x -> 0.5 * (1 + x)) <$> getRand
+            mat <- metal <$> liftM3 V3.vec3 f f f <*> ((0.5*) <$> getRand)
+            push $ sphere center 0.2 mat
+          | otherwise -> push $ sphere center 0.2 (dielectric 1.5)
+  push $ sphere (V3.vec3 0 1 0) 1 (dielectric 1.5)
+  push $ sphere (V3.vec3 (-4) 1 0) 1 (lambertian (V3.vec3 0.4 0.2 0.1))
+  push $ sphere (V3.vec3 4 1 0) 1 (metal (V3.vec3 0.7 0.6 0.5) 0)
+  hitableList <$> readIORef resRef
+  
 color :: R.Ray -> IORef (U.Vector R) -> IORef (U.Vector (R, R, R)) -> IORef Int -> HB.Hitable -> Int -> IO V3.Vec3
 color r rRef ruRef idxRef world depth
   | res = do
@@ -46,7 +69,7 @@ color r rRef ruRef idxRef world depth
     unitDir = normalize (R.direction r)
     t2 = 0.5 * (V3.y unitDir + 1)
 
-colorAt cam i j rRef ruRef idxRef = do
+colorAt cam world i j rRef ruRef idxRef = do
   colRef <- newIORef (V3.vec3 0 0 0)
   colorAt' colRef
   readIORef colRef
@@ -68,17 +91,17 @@ main = do
   rRef <- randFast rMax >>= newIORef
   idxRef <- newIORef 0
 
-  let lookfrom = V3.vec3 3 3 2
-      lookat = V3.vec3 0 0 (-1)
-      distToFocus = V3.length (lookfrom - lookat)
+  let lookfrom = V3.vec3 13 2 3
+      lookat = V3.vec3 0 0 0
+      distToFocus = 10
       aspect = fromIntegral nx / fromIntegral ny
-      aperture = 2
+      aperture = 0.1
   cam <- camera lookfrom lookat (V3.vec3 0 1 0) 20 aspect aperture distToFocus
-
+  world <- randomScene
   forM_ [ny -1, ny -2 .. 0] $ \j -> do
     print j
     forM_ [0 .. nx -1] $ \i -> do
-      col <- (/ fromIntegral ns) <$> colorAt cam i j rRef ruRef idxRef
+      col <- (/ fromIntegral ns) <$> colorAt cam world i j rRef ruRef idxRef
       let col' = V3.vec3 (sqrt $ V3.x col) (sqrt $ V3.y col) (sqrt $ V3.z col)
       let ir = truncate (255.99 * V3.x col')
           ig = truncate (255.99 * V3.y col')

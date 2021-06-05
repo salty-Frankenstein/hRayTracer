@@ -33,7 +33,6 @@ randFast n = do
     \(gen::GenST s) -> uniformVector gen n :: ST s (U.Vector Double)
   return $ U.force (vs :: (U.Vector Double))
 
--- randomInUnitSphere :: Int -> IO [(R,R,R)]
 randomInUnitSphere :: Int -> IO (U.Vector (R, R, R))
 randomInUnitSphere n = do
   let len = n * 2
