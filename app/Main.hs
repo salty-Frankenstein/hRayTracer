@@ -27,6 +27,11 @@ world =
       sphere (V3.vec3 (-1) 0 (-1)) 0.5 (dielectric 1.5),
       sphere (V3.vec3 (-1) 0 (-1)) (-0.45) (dielectric 1.5)
     ]
+cam = camera (V3.vec3 (-2) 2 1) 
+             (V3.vec3 0 0 (-1)) 
+             (V3.vec3 0 1 0) 
+             90 
+             (fromIntegral nx / fromIntegral ny)
 
 color :: R.Ray -> IORef (U.Vector R) -> IORef (U.Vector (R, R, R)) -> IORef Int -> HB.Hitable -> Int -> IO V3.Vec3
 color r rRef ruRef idxRef world depth
@@ -57,7 +62,7 @@ colorAt i j rRef ruRef idxRef = do
       U.forM_ r $ \(di, dj) -> do
         let u = (fromIntegral i + di) / fromIntegral nx
             v = (fromIntegral j + dj) / fromIntegral ny
-            r = getRay camera0 u v
+            r = getRay cam u v
         c <- color r rRef ruRef idxRef world 0
         modifyIORef colRef (+ c)
 
