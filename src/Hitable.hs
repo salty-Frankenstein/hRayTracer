@@ -14,6 +14,7 @@ newtype Material = Material
       HitRec ->                     -- hit record
       IORef V3.Vec3 ->              -- attenuation
       IORef R.Ray ->                -- scattered ray
+      IORef (U.Vector R) ->         -- random real nums
       IORef (U.Vector (R, R, R)) -> -- random vectors
       IORef Int ->                  -- index
       IO Bool                       -- result
