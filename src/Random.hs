@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Random where
 
-import Control.DeepSeq
 import Control.Monad
 import Control.Monad.ST
 import Data.IORef
@@ -12,10 +11,15 @@ import qualified Vec3 as V3
 
 
 rMax :: Int
-rMax = 200000
+rMax = 2000000
 
-getRU :: U.Unbox a => IORef (U.Vector a) -> IORef Int -> IO a
-getRU ruRef idxRef = do
+data RURef a = RURef (IORef (U.Vector a)) (IORef Int)
+
+newRURef :: IO (U.Vector a) -> IO (RURef a)
+newRURef f = RURef <$> (f >>= newIORef) <*> newIORef 0
+
+getRU :: U.Unbox a => RURef a -> IO a
+getRU r@(RURef ruRef idxRef) = do
   ruv <- readIORef ruRef
   idx <- readIORef idxRef
   case ruv U.!? idx of
@@ -25,7 +29,7 @@ getRU ruRef idxRef = do
     Nothing -> do
       writeIORef idxRef 0
       putStrLn "reuse random"
-      getRU ruRef idxRef
+      getRU r
 
 randFast :: Int -> IO (U.Vector Double)
 randFast n = do
@@ -63,4 +67,4 @@ randomInUnitDisk n = do
     getVec (x,y,_) = V3.v 2 * V3.vec3 x y 0 - V3.vec3 1 1 0
 
 randPair :: Int -> IO (U.Vector (Double, Double))
-randPair n = liftM2 U.zip (randFast n) (randFast n)
+randPair n = U.zip <$> randFast n <*> randFast n

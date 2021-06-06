@@ -7,6 +7,7 @@ import qualified Data.Vector.Unboxed as U
 import Numeric.LinearAlgebra
 import qualified Ray as R
 import qualified Vec3 as V3
+import Random
 
 newtype Material = Material
   { runMaterial ::
@@ -14,9 +15,8 @@ newtype Material = Material
       HitRec ->                     -- hit record
       IORef V3.Vec3 ->              -- attenuation
       IORef R.Ray ->                -- scattered ray
-      IORef (U.Vector R) ->         -- random real nums
-      IORef (U.Vector (R, R, R)) -> -- random vectors
-      IORef Int ->                  -- index
+      RURef R ->                    -- random real nums
+      RURef (R, R, R) ->            -- random vectors
       IO Bool                       -- result
   }
 

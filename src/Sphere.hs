@@ -19,24 +19,23 @@ hitSphere (Sphere cen rad mat) r tMin tMax = do
         d = b * b - a * c
         temp = (-b - sqrt d) / a
         temp2 = (- b + sqrt d) / a
-    if d > 0 then (
-      if {| temp < tMax && temp > tMin ->
+    if d > 0 then 
+      if  | temp < tMax && temp > tMin ->
             do
               let rect = temp
                   recp = R.pointAtParameter r rect
                   recnormal = (recp - cen) / V3.v rad
               put $ HB.HitRec rect recp recnormal mat
-              return True ;
-          | temp2  < tMax && temp2 > tMin ->
+              return True
+          | temp2 < tMax && temp2 > tMin ->
             do
               let rect = temp2
                   recp = R.pointAtParameter r rect
                   recnormal = (recp - cen) / V3.v rad
               put $ HB.HitRec rect recp recnormal mat
-              return True ;
-          | otherwise -> return False 
-
-      }) else return False
+              return True
+          | otherwise -> return False
+      else return False
 
 data Sphere = Sphere
   { center :: V3.Vec3,
