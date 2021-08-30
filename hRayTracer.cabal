@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 970da00b25bde215292a6679f21633a0742da5a6d0236221cfd9fa5c966aa22d
+-- hash: ebea7aca79297c384669141877a97035b4ef3d063456490852c816e8bac89e30
 
 name:           hRayTracer
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Camera
+      Common
       Hitable
       HitableList
       Material
